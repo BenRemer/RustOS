@@ -1,6 +1,5 @@
 // FIXME: Make me pass! Diff budget: 30 lines.
 
-// I AM NOT DONE
 
 #[derive(Default)]
 struct Builder {
@@ -9,13 +8,25 @@ struct Builder {
 }
 
 impl Builder {
-    // fn string(...
+    fn string<T : ToString>(&self, string : T) -> Builder {
+        Builder{string: Some(string.to_string()), number:self.number}
+    }
 
-    // fn number(...
+    fn number(&self, i : usize) -> Builder {
+        Builder{number : Some(i), string:self.string.clone()}
+    }
 }
 
 impl ToString for Builder {
     // Implement the trait
+    fn to_string(&self) -> String {
+        match (&self.string, self.number){
+            (None, Some(n)) => format!("{}", n),
+            (Some(s), Some(n)) => format!("{} {}", s, n),
+            (Some(s), None) => format!("{}", s),
+            _ => String::from("")
+        }
+    }
 }
 
 // Do not modify this function.

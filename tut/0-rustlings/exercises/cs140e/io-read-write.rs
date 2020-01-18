@@ -1,15 +1,15 @@
 // FIXME: Make me compile! Diff budget: 2 lines.
 
-// I AM NOT DONE
 
 use std::io;
+// use std::io::Result;
 
 struct ReadWrapper<T: io::Read> {
     inner: T,
 }
 
-impl io::Read for ReadWrapper<T> {
-    fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
+impl<T: io::Read> io::Read for ReadWrapper<T> {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize, std::io::Error>  {
         self.inner.read(buf)
     }
 }

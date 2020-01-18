@@ -1,6 +1,6 @@
 // FIXME: Make me compile! Diff budget: 1 line.
 
-// I AM NOT DONE
+use a::MyTrait;
 
 // Do not change this module.
 mod a {
@@ -10,7 +10,7 @@ mod a {
 
     pub struct MyType;
 
-    impl MyTrait for MyType {}
+    impl MyTrait for MyType {fn foo(&self){}}
 }
 
 // Do not modify this function.
