@@ -186,30 +186,12 @@ impl<T: io::Read + io::Write> Xmodem<T> {
         if b != byte {
             self.write_byte(CAN)?;
             if b == CAN {
-                return ioerr!(ConnectionAborted, "CAN")
+                return ioerr!(ConnectionAborted, "CAN");
             }
-            return ioerr!(InvalidData, expected)
+            return ioerr!(InvalidData, expected);
         } else {
             Ok(b)
         }
-        // match b {
-        //     // Err(ref e) if e.kind() == io::ErrorKind::ConnectionAborted => {
-        //     //     self.write_byte(CAN)?;
-        //     //     return ioerr!(ConnectionAborted, "received CAN");
-        //     // },
-        //     Err(e) => Err(e),
-        //     Ok(b) => {
-        //         if b != byte {
-        //             self.write_byte(CAN)?;
-        //             if b == CAN{
-        //                 return ioerr!(ConnectionAborted, "CAN")
-        //             }
-        //             return ioerr!(InvalidData, expected)
-        //         } else {
-        //             Ok(b)
-        //         }
-        //     }
-        // }
     }
 
     /// Reads a single byte from the inner I/O stream and compares it to `byte`.
@@ -233,25 +215,6 @@ impl<T: io::Read + io::Write> Xmodem<T> {
         } else {
             Ok(b)
         }
-        // match b {
-        //     Err(ref e) if e.kind() == io::ErrorKind::ConnectionAborted => {
-        //         if byte == CAN {
-        //             return Ok(byte);
-        //         }
-        //         return ioerr!(ConnectionAborted, "received CAN");
-        //     },
-        //     Err(e) => Err(e),
-        //     Ok(b) => {
-        //         if b != byte {
-        //             if b == CAN {
-        //                 return ioerr!(ConnectionAborted, "CAN")
-        //             }
-        //             return ioerr!(InvalidData, expected)
-        //         } else {
-        //             Ok(b)
-        //         }
-        //     }
-        // }
     }
 
     /// Reads (downloads) a single packet from the inner stream using the XMODEM
@@ -306,7 +269,7 @@ impl<T: io::Read + io::Write> Xmodem<T> {
 
             let sum = self.inner.read(buf)?; // read through packet and write to buf
             let check_sum = get_checksum(buf);
-            // let read_check_sum = self.read_byte(true)?;
+
             let read_checksum = self.expect_byte(check_sum, "Checksum failed");
             match read_checksum {
                 Err(r) => {
@@ -315,16 +278,10 @@ impl<T: io::Read + io::Write> Xmodem<T> {
                 },
                 Ok(_) => (),
             }
-            // if check_sum != read_check_sum {
-            //     self.write_byte(NAK)?;
-            //     return ioerr!(Interrupted, "Checksum failed");
-            // }
-            // if sum < 128 {
-            //     self.write_byte(CAN)?;
-            //     return ioerr!(UnexpectedEof, "Incorrect buff length");
-            // }
+            
             self.write_byte(ACK)?;
             (self.progress)(Progress::Packet(packet_number));
+            self.packet += 1;
             Ok(sum)
         } else {
             self.write_byte(CAN)?;
@@ -403,6 +360,7 @@ impl<T: io::Read + io::Write> Xmodem<T> {
             return ioerr!(UnexpectedEof, "Incorrect buf length")
         }
         (self.progress)(Progress::Packet(self.packet));
+        self.packet += 1;
         Ok(buf.len())
     }
 
