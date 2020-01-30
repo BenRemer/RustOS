@@ -1,0 +1,2 @@
+We need the clone trait because otherwise we would not be able to remove the data from the stack and return it. 
+When the bound is removed we try to return a reference to the data that has now gone out of scope, so we need to clone it to be able to return it.

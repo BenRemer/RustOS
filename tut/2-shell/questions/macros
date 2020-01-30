@@ -1,0 +1,2 @@
+These macros are what enforce is a pointer is readable/writable. 
+These macros set the pointer to either be constant if only readable or mut if writable  

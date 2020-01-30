@@ -1,12 +1,12 @@
 // FIXME: Make me pass! Diff budget: 30 lines.
 
 
-#[derive(Default)]
 struct Builder {
     string: Option<String>,
     number: Option<usize>,
 }
 
+<<<<<<< HEAD
 impl Builder {
     fn string<T : ToString>(&self, string : T) -> Builder {
         Builder{string: Some(string.to_string()), number:self.number}
@@ -29,6 +29,8 @@ impl ToString for Builder {
     }
 }
 
+=======
+>>>>>>> skeleton/lab2
 // Do not modify this function.
 #[test]
 fn builder() {
@@ -56,7 +58,9 @@ fn builder() {
 
     assert_eq!(b, "bye now! 200");
 
-    let c = Builder::default().string("heap!".to_owned()).to_string();
+    let c = Builder::default()
+        .string("heap!".to_owned())
+        .to_string();
 
     assert_eq!(c, "heap!");
 }

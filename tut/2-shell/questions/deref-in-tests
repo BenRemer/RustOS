@@ -1,0 +1,2 @@
+indexing and iterator(), would fail as they are trying to access specific locations in the stack and need to be able to dereference them.
+mut_indexing() would fail from DerefMut for the same reasons.

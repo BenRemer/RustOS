@@ -2,7 +2,11 @@
 
 
 mod a {
+<<<<<<< HEAD
     pub fn f() {}
+=======
+    fn f() { }
+>>>>>>> skeleton/lab2
 }
 
 // Do not modify this function.

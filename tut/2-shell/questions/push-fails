@@ -1,0 +1,2 @@
+The stackvec is backed by a user allocated slice of memory meaning when it runs out, rather than asking for more it will fail.
+Vec::push() will allocate more memory rather than failing. 

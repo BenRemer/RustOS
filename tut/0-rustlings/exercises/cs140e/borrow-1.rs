@@ -1,8 +1,11 @@
 // FIXME: Make me compile! Diff budget: 1 line.
 
 
+<<<<<<< HEAD
 // What traits does this struct need to derive?
 #[derive(Copy, Clone)]
+=======
+>>>>>>> skeleton/lab2
 struct MyType(usize);
 
 // Do not modify this function.

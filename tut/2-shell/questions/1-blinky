@@ -1,0 +1,2 @@
+We would need to use GPFSEL2 and continute to user GPFCLR0 and GPFSET0.
+GPIO pin 27 maps to the physical 27th pin on the GPIO.

@@ -1,0 +1,2 @@
+Unique is a wrapper for wrappers that implements sync which makes it safe to share references between threads.
+Just volitile is not safe to share.

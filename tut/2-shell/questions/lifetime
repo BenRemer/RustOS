@@ -1,0 +1,2 @@
+We need to ensure that the stack will not outlive the data in the stack. We get data with a lifetime of 'a and return a stack with a lifetime of 'a.
+If this was not enforced in rust the data that is being saved can be deallocated and then the entire struct would not work.

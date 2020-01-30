@@ -1,7 +1,13 @@
 // FIXME: Make me pass! Diff budget: 2 lines.
 
+<<<<<<< HEAD
 // What traits does this struct need to derive?
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
+=======
+// I AM NOT DONE
+
+#[derive(Debug)]
+>>>>>>> skeleton/lab2
 struct MyType(usize);
 
 fn borrow2() {

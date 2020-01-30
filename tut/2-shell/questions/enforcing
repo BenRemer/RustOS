@@ -1,0 +1,3 @@
+ReadVolitile sets the pointer to be able to be read with readable, WriteVoltile does the same but for writable.
+When a pointer is set to ReadVolitile it is only set to be readable, it is not writable, and vise-versa for writable.
+If a pointer that is readable tries to write, it cannot as it is not writable, it is set to a constant not a mut.
