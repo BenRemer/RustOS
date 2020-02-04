@@ -1,0 +1,2 @@
+xmodem builds on the network stack and needs to read adn write each bit and wait for confirmations. 
+Sending data in the raw is easier as it can copy the data rather than needing to go through the entire protocal.

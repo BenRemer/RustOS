@@ -4,6 +4,7 @@ use serial;
 use structopt;
 use structopt_derive::StructOpt;
 use xmodem::Xmodem;
+use xmodem::Progress;
 
 use std::path::PathBuf;
 use std::time::Duration;
@@ -46,12 +47,87 @@ struct Opt {
     raw: bool,
 }
 
+fn progress_fn(progress: Progress) {
+    println!("Progress: {:?}", progress);
+}
+
 fn main() {
     use std::fs::File;
     use std::io::{self, BufReader};
-
+ 
     let opt = Opt::from_args();
     let mut port = serial::open(&opt.tty_path).expect("path points to invalid TTY");
+  
+    let mut settings = match port.read_settings() {
+        Ok(settings) => settings,
+        Err(_err) => panic!("No settings found: {}", _err),
+    };
+   
+    match settings.set_baud_rate(opt.baud_rate) {
+        Ok(()) => println!("baud rate changed"),
+        Err(_err) => panic!("error with baud rate"),
+    }
 
-    // FIXME: Implement the `ttywrite` utility.
+    settings.set_char_size(opt.char_width);
+    settings.set_stop_bits(opt.stop_bits);
+    settings.set_flow_control(opt.flow_control);
+
+    match port.write_settings(&settings) {
+        Ok(()) => println!("settings changed"),
+        Err(_err) => panic!("error settings not changed"),
+    }
+
+    match port.set_timeout(Duration::new(opt.timeout, 0)) {
+        Ok(()) => println!("timeout changed"),
+        Err(_err) => panic!("timeout not changed"),
+    }
+ 
+    match opt.input {
+        Some(input_file) => { // input file given
+            let path = match input_file.into_os_string().into_string() {
+                Ok(p) => p,
+                Err(_err) => panic!("invalid string"), 
+            };
+ 
+            let file = match File::open(path) {
+                Ok(f) => f,
+                Err(_err) => panic!("{}", _err),    
+            };
+
+            let mut buffer = BufReader::new(file);
+ 
+            match opt.raw {
+                true => { // take as raw
+                    match io::copy(&mut buffer, &mut port)  {
+                        Ok(num_bytes) => println!("wrote {} bytes to input", num_bytes),
+                        Err(_err) => println!("error: {}", _err),
+                    }
+                },
+                false => { // use Xmodem
+                    match Xmodem::transmit_with_progress(buffer, port, progress_fn) {
+                        Ok(num_bytes) => println!("wrote {} bytes to input", num_bytes),
+                        Err(_err) => println!("error: {}", _err),
+                    }
+                }
+            }
+        },
+        None => { // read stdin
+            let mut buffer = BufReader::new(io::stdin());
+            match opt.raw {
+                true => {
+                    match io::copy(&mut buffer, &mut port) {
+                        Ok(num_bytes) => println!("wrote {} bytes to input", num_bytes),
+                        Err(_err) => println!("error: {}", _err),
+                    }
+                },
+                false => {
+                    match Xmodem::transmit_with_progress(buffer, port, progress_fn) {
+                        Ok(n) => println!("wrote {} bytes to input", n),
+                        Err(_err) => println!("error: {}", _err),
+                    }
+                }
+            }
+        }
+    }
+   
 }

@@ -1,0 +1,2 @@
+We set them as ReadVolatile which sets them to read only.
+This sets it to a constant that is not mutable, making it unwritable.

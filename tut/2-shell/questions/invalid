@@ -1,0 +1,3 @@
+Strucopt knows to reject strings that are no either 'hardware' or 'software'
+or none. It parses through what you wrote and if it is not one of the allowed
+values it sends an error.
