@@ -16,16 +16,24 @@ pub mod shell;
 
 use console::kprintln;
 
-// FIXME: You need to add dependencies here to
+// You need to add dependencies here to
 // test your drivers (Phase 2). Add them as needed.
-use pi::timer::*;
 use core::time::Duration;
+use pi::timer::*;
 use pi::gpio::Gpio;
+use pi::uart::MiniUart;
+use core::fmt::Write;
 
 
-unsafe fn kmain() -> ! {
+fn kmain() -> ! {
     // FIXME: Start the shell.
-    blink();
+    // blink();
+    let mut uart = MiniUart::new();
+    loop {
+        let mut byte = uart.read_byte();
+        uart.write_byte(byte);
+        uart.write_str("<3");
+    }
 }
 
 unsafe fn blink() -> ! {
