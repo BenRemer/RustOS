@@ -1,0 +1,4 @@
+The shell makes an instance of the console and lets the user communicate with it.
+This allows the user to type into the console and for the console to message back.
+The console creates a uart which allows the user to talk to the pi using rx and tx. 
+Uart can communicate to the pi either with raw data or by using ttywriter. 

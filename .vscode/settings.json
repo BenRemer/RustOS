@@ -2,5 +2,13 @@
     "cSpell.ignoreWords": [
         "ioerr",
         "xmodem"
+    ],
+    "cSpell.words": [
+        "CNTL",
+        "Gpio",
+        "Uart",
+        "kprint",
+        "kprintln",
+        "structopt"
     ]
 }

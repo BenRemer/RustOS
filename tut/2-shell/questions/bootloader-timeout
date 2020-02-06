@@ -1,0 +1,2 @@
+The bootloader could stall if the xmodem does not receive the initial NAK,
+this would result in a loop indefinitely. 

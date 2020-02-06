@@ -1,0 +1,2 @@
+If we returned the &mut directly then we would not have this nice ability to drop the ref.
+Rust would complain. 
