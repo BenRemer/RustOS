@@ -26,13 +26,20 @@ use core::fmt::Write;
 
 
 fn kmain() -> ! {
-    // FIXME: Start the shell.
-    // blink();
+    // Start the shell.
+    loop {
+        kprintln!("$");
+        shell::shell("$");
+    }
+}
+
+fn write() -> ! {
+    // kprintln!("Console is working!");
     let mut uart = MiniUart::new();
     loop {
         let mut byte = uart.read_byte();
-        uart.write_byte(byte);
-        uart.write_str("<3");
+        // uart.write_byte(byte);
+        // uart.write_str("<3");
     }
 }
 
