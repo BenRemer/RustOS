@@ -186,7 +186,7 @@ impl<T: io::Read + io::Write> Xmodem<T> {
         if b != byte {
             self.write_byte(CAN)?;
             if b == CAN {
-                return ioerr!(ConnectionAborted, "CAN");
+                return ioerr!(ConnectionAborted, "expect or cancel CAN");
             }
             return ioerr!(InvalidData, expected);
         } else {
@@ -209,7 +209,7 @@ impl<T: io::Read + io::Write> Xmodem<T> {
         let b = self.read_byte(false)?;
         if b != byte {
             if b == CAN {
-                return ioerr!(ConnectionAborted, "CAN");
+                return ioerr!(ConnectionAborted, "expect byte CAN");
             }
             return ioerr!(InvalidData, expected);
         } else {
@@ -254,7 +254,7 @@ impl<T: io::Read + io::Write> Xmodem<T> {
         }
 
         // looking for SOH or EOT
-        let first = self.read_byte(true)?;
+        let first = self.read_byte(false)?;
 
         if first == EOT {
             self.write_byte(NAK)?;
@@ -267,26 +267,36 @@ impl<T: io::Read + io::Write> Xmodem<T> {
 
             self.expect_byte_or_cancel(255 - packet_number, "Packet numbers do not match")?;
 
-            let sum = self.inner.read(buf)?; // read through packet and write to buf
-            let check_sum = get_checksum(buf);
+            // let sum = self.inner.read(buf)?; // read through packet and write to buf
+            for i in 0..128 {
+                buf[i] = self.read_byte(false)?;
+            }
+            
+            let sum = self.read_byte(false)?;
 
-            let read_checksum = self.expect_byte(check_sum, "Checksum failed");
-            match read_checksum {
-                Err(r) => {
-                    self.write_byte(NAK)?;
-                    return Err(r);
-                },
-                Ok(_) => (),
+            let check_sum = get_checksum(buf) % 255;
+
+            // let read_checksum = self.expect_byte(check_sum, "Checksum failed");
+            // match read_checksum {
+            //     Err(r) => {
+            //         self.write_byte(NAK)?;
+            //         return Err(r);
+            //     },
+            //     Ok(_) => (),
+            // }
+            if check_sum != sum {
+                self.write_byte(NAK)?;
+                return ioerr!(Interrupted, "Checksum failed");
             }
             
             self.write_byte(ACK)?;
             (self.progress)(Progress::Packet(packet_number));
             self.packet += 1;
-            Ok(sum)
+            Ok(128)
         } else {
-            self.write_byte(CAN)?;
+            // self.write_byte(CAN)?;
             if first == CAN {
-                return ioerr!(ConnectionAborted, "CAN");
+                return ioerr!(ConnectionAborted, "first was CAN");
             }
             return ioerr!(InvalidData, "Expected EOT or SOH");
         }
@@ -323,7 +333,11 @@ impl<T: io::Read + io::Write> Xmodem<T> {
     ///
     /// An error of kind `Interrupted` is returned if a packet checksum fails.
     pub fn write_packet(&mut self, buf: &[u8]) -> io::Result<usize> {
-    
+        if buf.len() < 128 && buf.len() != 0 {
+            self.write_byte(CAN)?;
+            return ioerr!(UnexpectedEof, "Incorrect buf length")
+        }
+
         if self.started == false {
             (self.progress)(Progress::Waiting);
             self.expect_byte(NAK, "Expected NAK")?;
@@ -343,9 +357,13 @@ impl<T: io::Read + io::Write> Xmodem<T> {
         self.write_byte(SOH)?;
         self.write_byte(self.packet)?;
         self.write_byte(255 - self.packet)?;
+
+        // for i in 0..128 {
+        //     self.write_byte(buf[i])?;
+        // }
         self.inner.write_all(buf)?;
 
-        let check_sum = get_checksum(buf);
+        let check_sum = get_checksum(buf) % 255;
         self.write_byte(check_sum)?;
 
         self.expect_byte(ACK, "Checksum failed")?;
@@ -355,10 +373,7 @@ impl<T: io::Read + io::Write> Xmodem<T> {
         //     return ioerr!(InvalidData, "Expected ACK or NAK");
         // }
 
-        if buf.len() < 128 && buf.len() != 0 {
-            self.write_byte(CAN)?;
-            return ioerr!(UnexpectedEof, "Incorrect buf length")
-        }
+        
         (self.progress)(Progress::Packet(self.packet));
         self.packet += 1;
         Ok(buf.len())
