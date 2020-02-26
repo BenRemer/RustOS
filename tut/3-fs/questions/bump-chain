@@ -1,0 +1,3 @@
+v.push(i) will need to expand its internal storage expand(newsize). 
+Once it is pushed, it will expand with a new size which rust will alloc. 
+This in tern will use our bump allocator to allocate the space. 

@@ -1,0 +1,11 @@
+I chose a size of 32 because as in the example a bin of 2^22 bytes will cover allocations in 
+2^31 and 2^32. 2^29 will fill up the ram on the raspberry pi, so it's rounded up to a base 2.
+
+When allocating it first finds the bin that is large enough for the given memory request. 
+Then it looks at all blocks in the bin for one with the alignment.  
+If there is no block a new block is reserved and given the alignment.
+Once allocated the alignment cannot be changed.  
+If we dealloc the memory is returned to the list of free locations.
+
+It can have up to the aligned layout bytes of internal fragmentation.
+It has up to 50% available memory for the external fragmentation.

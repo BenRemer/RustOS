@@ -333,7 +333,7 @@ impl<T: io::Read + io::Write> Xmodem<T> {
     ///
     /// An error of kind `Interrupted` is returned if a packet checksum fails.
     pub fn write_packet(&mut self, buf: &[u8]) -> io::Result<usize> {
-        if buf.len() < 128 && buf.len() != 0 {
+        if buf.len() < 128 && !buf.is_empty(){
             self.write_byte(CAN)?;
             return ioerr!(UnexpectedEof, "Incorrect buf length")
         }
@@ -358,10 +358,10 @@ impl<T: io::Read + io::Write> Xmodem<T> {
         self.write_byte(self.packet)?;
         self.write_byte(255 - self.packet)?;
 
-        // for i in 0..128 {
-        //     self.write_byte(buf[i])?;
-        // }
-        self.inner.write_all(buf)?;
+        for i in 0..128 {
+            self.write_byte(buf[i])?;
+        }
+        // self.inner.write_all(buf)?;
 
         let check_sum = get_checksum(buf) % 255;
         self.write_byte(check_sum)?;

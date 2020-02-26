@@ -1,0 +1,2 @@
+The tests starts at 1234 and ends at 5678. The address of MEM is at 0x54410002, this ends up being much smaller than
+the 1GB it has. 

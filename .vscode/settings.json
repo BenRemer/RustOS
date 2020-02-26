@@ -4,9 +4,13 @@
         "xmodem"
     ],
     "cSpell.words": [
+        "Atag",
+        "Atags",
         "CNTL",
         "Gpio",
         "Uart",
+        "curr",
+        "dwords",
         "kprint",
         "kprintln",
         "structopt"

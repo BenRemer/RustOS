@@ -1,0 +1,2 @@
+This is to make sure that the user gets 8 for 8-byte allocations, and 16 for 16-or-more-byte allocations. 
+It makes calculating size easier. 

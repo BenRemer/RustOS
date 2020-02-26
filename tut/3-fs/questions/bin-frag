@@ -1,0 +1,5 @@
+One way would be to change how alignments are made. As it is now if a block gets allocated with an uncommon layout
+it could take a long time for that block to get reused. If we can change this to be able to change the allocations
+we can reuse this. 
+Another way would be to sub-divide the allocations. When we allocate we use more space than needed.
+If we sub-divide we can reuse this space.

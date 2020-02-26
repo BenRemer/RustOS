@@ -1,0 +1,3 @@
+The allocator will always know what size it is getting. This allows for the allocator to be different 
+and change on size if needbe. The caller does not have to worry about how big the allocator is 
+and the allocator does not have to think about how the memory is aligned. 

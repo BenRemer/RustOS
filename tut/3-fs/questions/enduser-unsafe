@@ -1,0 +1,3 @@
+We give them a safe interface to use because if we did not we would not be able to 
+program the unsafe code knowing that we do not get the incorrect data. 
+Because of how c works, we would not need to do this as all c code is unsafe.
