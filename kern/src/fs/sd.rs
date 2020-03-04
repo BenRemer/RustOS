@@ -35,7 +35,7 @@ extern "C" {
 // The `wait_micros` C signature is: `void wait_micros(unsigned int);`
 #[no_mangle]
 pub fn wait_micros(micro: u32) {
-    let dur = Duration::from_micros(micro as u64);
+    let dur = Duration::from_millis((micro * 50) as u64);
     spin_sleep(dur);
 }
 
@@ -92,6 +92,7 @@ impl BlockDevice for Sd {
                 let error = unsafe{sd_err};
                 match error {
                     -1 => Err(io::Error::new(io::ErrorKind::TimedOut, "Read timeout")),
+                    // -2 => Err(io::Error::new(io::ErrorKind::Other, "Send command")),
                     _ => Err(io::Error::new(io::ErrorKind::Other, "Driver error")),
                 }
             }

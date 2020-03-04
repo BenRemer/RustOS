@@ -46,6 +46,7 @@ fn kmain() -> ! {
     }
     
     spin_sleep(Duration::new(1,0));
+    // kprintln!("Welcome");
     // panic!("error");
     // use alloc::vec::Vec;
 

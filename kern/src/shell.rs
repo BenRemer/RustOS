@@ -56,9 +56,9 @@ impl<'a> Command<'a> {
 }
 
 fn echo(args: &[&str]) {
+    // kprintln!(" ");
     for arg in args {
-        kprintln!("{}", arg);
-        kprintln!(" ");
+        kprintln!("{} ", arg);
     }
 }
 
@@ -195,7 +195,9 @@ const DELETE:u8 = 127;
 const BELL: u8 = 7;
 
 pub fn shell(prefix: &str) -> ! {
+    // panic!("panic");
     let mut working_directory = PathBuf::from("/");
+    // kprintln!("{}", working_directory.as_path().display());
     loop { // loop forever
         let mut buf_storage = [0u8; 512];
         let mut buf = StackVec::new(&mut buf_storage);
@@ -235,6 +237,7 @@ pub fn shell(prefix: &str) -> ! {
                         break
                     }
                 };
+                kprintln!("{}", BACKSPACE);
                 match command.path() { // match it's command
                     "echo" => echo(&command.args[1..]),
                     "pwd" => pwd(&working_directory),
