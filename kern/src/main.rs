@@ -17,13 +17,13 @@ extern crate alloc;
 
 pub mod allocator;
 pub mod console;
-// pub mod fs;
+pub mod fs;
 pub mod mutex;
 pub mod shell;
 
 use console::kprintln;
 use allocator::Allocator;
-// use fs::FileSystem;
+use fs::FileSystem;
 
 
 // You need to add dependencies here to
@@ -36,26 +36,25 @@ use core::fmt::Write;
 
 #[cfg_attr(not(test), global_allocator)]
 pub static ALLOCATOR: Allocator = Allocator::uninitialized();
-//pub static FILESYSTEM: FileSystem = FileSystem::uninitialized();
+pub static FILESYSTEM: FileSystem = FileSystem::uninitialized();
 
 fn kmain() -> ! {
     // Start the shell.
-    // unsafe {
-            //    ALLOCATOR.initialize();
-            //    FILESYSTEM.initialize();
-    // }
-    use alloc::vec::Vec;
-
-    let mut v = Vec::new();
-    for i in 0..50 {
-    v.push(i);
-    kprintln!("{:?}", v);
-}
-    loop {
-        spin_sleep(Duration::new(1,0));
-        // panic!("error");
-        shell::shell("$");
+    unsafe {
+        ALLOCATOR.initialize();
+        FILESYSTEM.initialize();
     }
+    
+    spin_sleep(Duration::new(1,0));
+    // panic!("error");
+    // use alloc::vec::Vec;
+
+    // let mut v = Vec::new();
+    // for i in 0..50 {
+    //     v.push(i);
+    //     kprintln!("{:?}", v);
+    // }
+    shell::shell("$");
 }
 
 fn write() -> ! {

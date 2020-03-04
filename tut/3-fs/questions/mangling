@@ -1,0 +1,3 @@
+Rust needs to mangle symbols to prevent functions with the same name in different files from colliding.
+In C function names are global while in Rust we can have many of the same. 
+If they were not mangled we could not have two modules that both declare name(), it would give us an error.

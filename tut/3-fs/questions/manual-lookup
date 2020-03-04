@@ -1,0 +1,7 @@
+I will go to the EBPB and find the cluster number from the root directory in the FAT32 table of that number index.
+We then calculate the starting point of the FAT32 (# reserved sectors * # bytes per sector). We then find the 
+starting point of the data section(# FAT32 sections * # sectors per FAT32 * bytes per sector + FAT32 starting point).
+We read FAT32 ID, end-of-cluster-chain marker, and ID of the first data cluster. 
+We use the ID to find the entry. If it is a LFN we can over entries to get the filename. 
+If it is a directory we see if it is 'a'. If it is user the cluster id to find the subdirectory and look for 'b'.
+Then we look for a file with name c.txt and find the cluster ID. We then have the starting cluster. 

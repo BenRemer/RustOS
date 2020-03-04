@@ -3,6 +3,8 @@ use alloc::vec::Vec;
 use core::fmt;
 use hashbrown::HashMap;
 use shim::io;
+// use std::io::Write;
+use core::cmp::min;
 
 use crate::traits::BlockDevice;
 
@@ -66,14 +68,34 @@ impl CachedPartition {
     /// Maps a user's request for a sector `virt` to the physical sector.
     /// Returns `None` if the virtual sector number is out of range.
     fn virtual_to_physical(&self, virt: u64) -> Option<u64> {
-        if virt >= self.partition.num_sectors {
+        let new_virt = virt - self.partition.start;
+        if new_virt >= self.partition.num_sectors {
             return None;
         }
 
-        let physical_offset = virt * self.factor();
+        let physical_offset = new_virt * self.factor(); // - self.Partition.start
         let physical_sector = self.partition.start + physical_offset;
 
         Some(physical_sector)
+    }
+
+    // loads sector if not already loaded
+    fn load_sector(&mut self, sector: u64) -> io::Result<()> {
+        if !self.cache.contains_key(&sector) {
+            // let factor = self.factor();
+            let physical = self.virtual_to_physical(sector).unwrap();
+            // let mut data = Vec::new();
+            let mut data = Vec::with_capacity((self.device.sector_size() * self.factor())as usize);
+            // let mut data = vec![0u8; (physical * self.factor()) as usize];
+            for i in 0..self.factor() {
+                self.device.read_all_sector(physical + i, &mut data)?;
+            }
+            self.cache.insert(sector, CacheEntry{
+                data, 
+                dirty: false
+            });
+        }
+        Ok(())
     }
 
     /// Returns a mutable reference to the cached sector `sector`. If the sector
@@ -87,7 +109,10 @@ impl CachedPartition {
     ///
     /// Returns an error if there is an error reading the sector from the disk.
     pub fn get_mut(&mut self, sector: u64) -> io::Result<&mut [u8]> {
-        unimplemented!("CachedPartition::get_mut()")
+        self.load_sector(sector)?;
+        let sec = self.cache.get_mut(&sector).unwrap();
+        sec.dirty = true;
+        Ok(&mut sec.data)
     }
 
     /// Returns a reference to the cached sector `sector`. If the sector is not
@@ -97,23 +122,48 @@ impl CachedPartition {
     ///
     /// Returns an error if there is an error reading the sector from the disk.
     pub fn get(&mut self, sector: u64) -> io::Result<&[u8]> {
-        unimplemented!("CachedPartition::get()")
+        self.load_sector(sector)?;
+        // let sec = self.cache.get(&sector).unwrap();
+        // match self.cache.get(&sector) {
+        //     Some(sec) => Ok(sec.data.as_slice()),
+        //     _ => Err(io::Error::new(io::ErrorKind::Interrupted, "Vitual out of bounds get"))
+        // }
+        let sec = self.cache.get(&sector).unwrap();
+        Ok(&sec.data)
     }
 }
 
-// FIXME: Implement `BlockDevice` for `CacheDevice`. The `read_sector` and
+// Implement `BlockDevice` for `CacheDevice`. The `read_sector` and
 // `write_sector` methods should only read/write from/to cached sectors.
 impl BlockDevice for CachedPartition {
     fn sector_size(&self) -> u64 {
-        unimplemented!()
+        self.partition.sector_size
     }
 
     fn read_sector(&mut self, sector: u64, buf: &mut [u8]) -> io::Result<usize> {
-        unimplemented!()
+        if !self.cache.contains_key(&sector) {
+            return Err(io::Error::new(io::ErrorKind::Interrupted, "not cached yet"));
+        }
+        if buf.len() < self.sector_size() as usize {
+            return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "buf too short"));
+        }
+        let data = self.get(sector)?;
+        let length = min(data.len(), buf.len());
+        buf[..length].copy_from_slice(&data[..length]);
+        Ok(length)
     }
 
     fn write_sector(&mut self, sector: u64, buf: &[u8]) -> io::Result<usize> {
-        unimplemented!()
+        if !self.cache.contains_key(&sector) {
+            return Err(io::Error::new(io::ErrorKind::Interrupted, "not cached yet"));
+        }
+        if buf.len() < self.sector_size() as usize {
+            return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "buf too short"));
+        }
+        let data = self.get_mut(sector)?;
+        let length = min(data.len(), buf.len());
+        data[..length].copy_from_slice(&buf[..length]);
+        Ok(length)
     }
 }
 

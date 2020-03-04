@@ -1,0 +1,2 @@
+You know it is a MBR if the last two bits (510 and 511) are (0x55 and 0xAA). 
+This indicates the end of the MBR.

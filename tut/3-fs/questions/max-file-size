@@ -1,0 +1,2 @@
+The file size must be smaller than the 4-bytes of space it gets, 
+so the max size would be 1-byte less than 4 gigabytes

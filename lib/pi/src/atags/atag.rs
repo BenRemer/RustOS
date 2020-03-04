@@ -42,7 +42,6 @@ impl Atag {
 impl From<&'static raw::Atag> for Atag {
     fn from(atag: &'static raw::Atag) -> Atag {
         // Complete the implementation below.
-        
         unsafe {
             match (atag.tag, &atag.kind) {
                 (raw::Atag::CORE, &raw::Kind { core }) => Atag::Core(core),

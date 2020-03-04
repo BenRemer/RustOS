@@ -312,6 +312,7 @@ fn hash_file<T: File>(hash: &mut String, mut file: T) -> ::std::fmt::Result {
     let mut range = Range::new(128, 8192);
     let mut hasher = DefaultHasher::new();
 
+    // let mut mybuf = vec![0; file.size()];
     let mut bytes_read = 0;
     loop {
         let mut buffer = vec![0; range.sample(&mut rng)];
@@ -319,6 +320,7 @@ fn hash_file<T: File>(hash: &mut String, mut file: T) -> ::std::fmt::Result {
             Ok(0) => break,
             Ok(n) => {
                 hasher.write(&buffer[..n]);
+                // hasher.write(&mybuf[..n]);
                 bytes_read += n as u64;
             }
             Err(e) => panic!("failed to read file: {:?}", e),

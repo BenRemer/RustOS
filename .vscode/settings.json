@@ -11,8 +11,13 @@
         "Uart",
         "curr",
         "dwords",
+        "ebpb",
         "kprint",
         "kprintln",
-        "structopt"
+        "readsector",
+        "rootdir",
+        "seeked",
+        "structopt",
+        "vfat"
     ]
 }

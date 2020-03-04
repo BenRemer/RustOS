@@ -1,0 +1,3 @@
+For foreign code there is no way for the rust compiler to know if the code could crash or not, or if 
+it would run any assembly code ot access any memory locations. When using rust code it can know this 
+so it can ensure that the code is safe.

@@ -4,6 +4,8 @@ use shim::ioerr;
 
 use fat32::traits::BlockDevice;
 
+use pi::timer::spin_sleep;
+
 extern "C" {
     /// A global representing the last SD controller error that occured.
     static sd_err: i64;
@@ -29,8 +31,13 @@ extern "C" {
     fn sd_readsector(n: i32, buffer: *mut u8) -> i32;
 }
 
-// FIXME: Define a `#[no_mangle]` `wait_micros` function for use by `libsd`.
+// Define a `#[no_mangle]` `wait_micros` function for use by `libsd`.
 // The `wait_micros` C signature is: `void wait_micros(unsigned int);`
+#[no_mangle]
+pub fn wait_micros(micro: u32) {
+    let dur = Duration::from_micros(micro as u64);
+    spin_sleep(dur);
+}
 
 /// A handle to an SD card controller.
 #[derive(Debug)]
@@ -43,7 +50,19 @@ impl Sd {
     /// with atomic memory access, but we can't use it yet since we haven't
     /// written the memory management unit (MMU).
     pub unsafe fn new() -> Result<Sd, io::Error> {
-        unimplemented!("Sd::new()")
+        let result = sd_init();
+        if result == 0 {
+            Ok(Sd { })
+        } else if result == -1 {
+            return Err(io::Error::new(io::ErrorKind::TimedOut, "Timed out"));
+            // ioerr!(TimedOut, "Timed out")
+        } else if result == -2 {
+            return Err(io::Error::new(io::ErrorKind::ConnectionRefused, "Sending Failed"));
+            // ioerr!(ConnectionRefused, "Sending Failed")
+        } else {
+            return Err(io::Error::new(io::ErrorKind::InvalidData, "Unknown Error"));
+            // ioerr!(InvalidData, "Unknown Error")
+        }
     }
 }
 
@@ -61,10 +80,25 @@ impl BlockDevice for Sd {
     ///
     /// An error of kind `Other` is returned for all other errors.
     fn read_sector(&mut self, n: u64, buf: &mut [u8]) -> io::Result<usize> {
-        unimplemented!("Sd::read_sector()")
+        if buf.len() < 512 {
+            Err(io::Error::new(io::ErrorKind::InvalidInput, "buf too small"))
+        } else if n > 2147483647 { // i32 max value
+            Err(io::Error::new(io::ErrorKind::InvalidInput, "n out of range"))
+        } else {
+            let bytes = unsafe {sd_readsector(n as i32, buf.as_mut_ptr())};
+            if bytes > 0 {
+                Ok(bytes as usize)
+            } else {
+                let error = unsafe{sd_err};
+                match error {
+                    -1 => Err(io::Error::new(io::ErrorKind::TimedOut, "Read timeout")),
+                    _ => Err(io::Error::new(io::ErrorKind::Other, "Driver error")),
+                }
+            }
+        }
     }
 
     fn write_sector(&mut self, _n: u64, _buf: &[u8]) -> io::Result<usize> {
-        unimplemented!("SD card and file system are read only")
+        unimplemented!("read only as of now");
     }
 }

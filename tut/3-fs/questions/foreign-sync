@@ -1,0 +1,2 @@
+It is thread safe as there is ony one sd object as a time. sd_init must succeed to create a sd object meaning
+that if one exists already another one cannot be made.
