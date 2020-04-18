@@ -1,0 +1,2 @@
+When a process is destroyed the process will call drop() on the stack object. This will deallocate the stack memory. This is possible because
+the stack object is kept in a process. 

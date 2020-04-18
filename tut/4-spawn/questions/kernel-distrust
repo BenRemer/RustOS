@@ -1,0 +1,2 @@
+Yes a process needs trust the kernel. The kernel has full access to everything, it needs to be trusted. 
+The kernel starts a process and allocates memory, it must be able to do that. 

@@ -1,0 +1,3 @@
+We would first set SCR)EL1.FPEN to 01 to generate a trap in EL0 when flaoting point is used. This makes a synchronous exception with
+Syndrome SimdFp. When this happens floating point registers can be stored in the trap frame for future calls.The trap frame needs to include
+the fields for floating point registers.

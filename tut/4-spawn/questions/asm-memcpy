@@ -1,0 +1,6 @@
+next_section:
+    ldr x4, [x0], #8
+    str x4, [x1], #8
+    sub x2, x2, #8
+    cbnz x2, next_section
+    ret

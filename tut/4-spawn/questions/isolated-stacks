@@ -1,0 +1,3 @@
+Two processes sharing a stack means that both would be able to add and pop elements off of the stack. 
+If two processes shared a stack there could be corruption at any point there is a context switch if the other process is using the stack.
+If we can be sure that the stack is balanced when we do a context switch we should be able to share a stack without corruption.

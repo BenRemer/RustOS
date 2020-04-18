@@ -1,0 +1,1 @@
+it compares and branches if both registers are 0. I would use it when needing to see if a register is 0 or if I need to loop again

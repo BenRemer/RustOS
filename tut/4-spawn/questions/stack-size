@@ -1,0 +1,9 @@
+We can implement a new kernel call grow_stack. This would allocate a new and bigger block of memory and copy the old stack into it. It would
+then change the stack pointer to the new location.
+grow_stack would look like:
+mov x0, #(2 << 20)
+sys 1 
+
+Then:
+let offset = stack.top() - context.sp;
+context.sp = new_stack.top() - offset;

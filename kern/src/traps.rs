@@ -41,5 +41,25 @@ pub struct Info {
 /// the trap frame for the exception.
 #[no_mangle]
 pub extern "C" fn handle_exception(info: Info, esr: u32, tf: &mut TrapFrame) {
-    unimplemented!("handle_exception");
+    use crate::shell;
+ 
+    kprintln!("ESR: {:?}", esr);
+    kprintln!("{:?}", info);
+    if (info.kind == Kind::Synchronous) {
+        tf.pc += 4;
+        match Syndrome::from(esr) {
+            Syndrome::Brk(val) => {
+                kprintln!("Brk(val): {:?}", val);
+                kprintln!("{:?}", tf);
+                shell("<DEBUG> ");
+            },
+            Syndrome::Svc(val) => {
+                kprintln!("Svc(val): {:?}", val);
+                shell("<DEBUG> ");
+            },
+            _ => nop(),
+        }
+    } else if (info.kind == Kind::Irq) {
+       
+    }
 }

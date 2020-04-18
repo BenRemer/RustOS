@@ -1,0 +1,6 @@
+If SPSel is 0 we write to SP_EL0 else we write to SP_ELx.
+
+If SPSel == 1:
+    msr SP_ELs, B
+If SPSel == 0:
+    msr SP_EL0, B

@@ -1,0 +1,6 @@
+zero_bss:
+    it goes through the bss and zeros it out
+switch_to_el2:
+    switches the level to El2 
+switch_to_el1:
+    switches to El1 to get the kernel boot code

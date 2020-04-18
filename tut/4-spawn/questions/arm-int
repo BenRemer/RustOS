@@ -1,0 +1,1 @@
+A timer interrupt is a IRQ and we are in AArch64 so the address is 0x480

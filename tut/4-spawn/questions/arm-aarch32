@@ -1,0 +1,5 @@
+We set SPSR bit 4 to 1 to switch to AArch32
+at level x:
+    msr x0 SPSR_ELx
+    orr x0, x0, #(1 << 4)
+    msr SPSR_ELx, x0

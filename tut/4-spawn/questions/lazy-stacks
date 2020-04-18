@@ -1,0 +1,2 @@
+With virtual memory we can allocate a page worth of memory by default. If the stack grows beyond the bounds a DataAbort would be generated 
+and we can allocate additional memory and resume the process. The memory exist until it is accessed making it so it only exists when needed.

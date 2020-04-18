@@ -1,0 +1,1 @@
+Because it is a user program we are on AArch64 and it is a synchronous exception so we go to 0x400

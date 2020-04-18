@@ -1,0 +1,3 @@
+Using ret: mov lr, A
+eret: mov x0, A
+      msr ELR_E:x, x0
