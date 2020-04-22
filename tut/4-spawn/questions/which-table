@@ -1,0 +1,1 @@
+It knows because of where each of the tables are. It knows if it needs to access the kernel page otherwise it knows to use the user page. 

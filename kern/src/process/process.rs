@@ -3,12 +3,18 @@ use shim::io;
 use shim::path::Path;
 
 use aarch64;
+use core::cmp::min;
 
 use crate::param::*;
 use crate::process::{Stack, State};
 use crate::traps::TrapFrame;
 use crate::vm::*;
+use crate::FILESYSTEM;
+use crate::allocator::util::align_down;
 use kernel_api::{OsError, OsResult};
+use fat32::traits::FileSystem;
+use io::Read;
+
 
 /// Type alias for the type of a process ID.
 pub type Id = u64;
@@ -21,7 +27,7 @@ pub struct Process {
     /// The memory allocation used for the process's stack.
     pub stack: Stack,
     /// The page table describing the Virtual Memory of the process
-    // pub vmap: Box<UserPageTable>,
+    pub vmap: Box<UserPageTable>,
     /// The scheduling state of the process.
     pub state: State,
 }
@@ -33,12 +39,17 @@ impl Process {
     /// If enough memory could not be allocated to start the process, returns
     /// `None`. Otherwise returns `Some` of the new `Process`.
     pub fn new() -> OsResult<Process> {
-        let stack = Stack::new()?;
-        Some(Process {
-            context: Box::new(TrapFrame::default()),
-            stack,
-            state: State::Ready
-        })
+        match Stack::new() {
+            Some(stack) => {
+                Ok(Process {
+                    context: Box::new(TrapFrame::default()),
+                    stack: stack,
+                    vmap: Box::new(UserPageTable::new()),
+                    state: State::Ready,
+                })
+            },
+            None => Err(OsError::NoMemory)
+        }
     }
 
     /// Load a program stored in the given path by calling `do_load()` method.
@@ -55,8 +66,12 @@ impl Process {
 
         let mut p = Process::do_load(pn)?;
 
-        //FIXME: Set trapframe for the process.
-
+        // Set trapframe for the process.
+        p.context.ttbr0 = VMM.get_baddr().as_u64();
+        p.context.ttbr1 = p.vmap.get_baddr().as_u64();
+        p.context.elr = Self::get_image_base().as_u64();
+        p.context.spsr |= aarch64::SPSR_EL1::F | aarch64::SPSR_EL1::A | aarch64::SPSR_EL1::D;
+        p.context.sp = Self::get_stack_top().as_u64();
         Ok(p)
     }
 
@@ -64,30 +79,52 @@ impl Process {
     /// Allocates one page for stack with read/write permission, and N pages with read/write/execute
     /// permission to load file's contents.
     fn do_load<P: AsRef<Path>>(pn: P) -> OsResult<Process> {
-        unimplemented!();
+        use crate::fs::PiVFatHandle;
+        use fat32::vfat::File;
+
+        let mut p = Process::new()?;
+        p.vmap.alloc(Self::get_stack_base(), PagePerm::RW); 
+        let mut file: File<PiVFatHandle> = match FILESYSTEM.open_file(pn) {
+            Ok(f) => f,
+            Err(_) => return Err(OsError::NoEntry)
+        };
+        let binary_size = file.size as usize;
+        let pages = 1 + (binary_size / PAGE_SIZE);
+        let mut remaining = binary_size;
+        for i in 0..pages {
+            let page_start = i * PAGE_SIZE;
+            let base = VirtualAddr::from(USER_IMG_BASE + page_start);
+            let page = p.vmap.alloc(base, PagePerm::RWX);
+            let bytes = min(PAGE_SIZE, remaining);
+            if let Err(_) = file.read_exact(&mut page[0..bytes]) {
+                return Err(OsError::NoEntry);
+            }
+            remaining -= bytes;
+        }
+        Ok(p)
     }
 
     /// Returns the highest `VirtualAddr` that is supported by this system.
     pub fn get_max_va() -> VirtualAddr {
-        unimplemented!();
+        VirtualAddr::from(USER_IMG_BASE + USER_MAX_VM_SIZE)
     }
 
     /// Returns the `VirtualAddr` represents the base address of the user
     /// memory space.
     pub fn get_image_base() -> VirtualAddr {
-        unimplemented!();
+        VirtualAddr::from(USER_IMG_BASE)
     }
 
     /// Returns the `VirtualAddr` represents the base address of the user
     /// process's stack.
     pub fn get_stack_base() -> VirtualAddr {
-        unimplemented!();
+        VirtualAddr::from(USER_STACK_BASE)
     }
 
     /// Returns the `VirtualAddr` represents the top of the user process's
     /// stack.
     pub fn get_stack_top() -> VirtualAddr {
-        unimplemented!();
+        align_down(usize::max_value(), 16).into()
     }
 
     /// Returns `true` if this process is ready to be scheduled.
@@ -105,6 +142,21 @@ impl Process {
     ///
     /// Returns `false` in all other cases.
     pub fn is_ready(&mut self) -> bool {
-        unimplemented!("Process::is_ready()")
+        match self.state {
+            State::Ready => true,
+            State::Waiting(_) => {
+                let last = core::mem::replace(&mut self.state, State::Ready);
+                if let State::Waiting(mut func) = last {
+                    let ready = func(self);
+                    if !ready { 
+                        core::mem::replace(&mut self.state, State::Waiting(func)); 
+                    }
+                    return ready;
+                } else { 
+                    panic!("Error detecting current state")
+                }
+            },
+            _ => false
+        }
     }
 }

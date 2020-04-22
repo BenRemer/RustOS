@@ -1,0 +1,2 @@
+Sometimes we need to deref the pagetable. Deref lets us look at it and use it while DerefMut lets us update it. Either of these can be useful
+for a multitude of aspects. 

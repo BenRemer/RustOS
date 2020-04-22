@@ -76,7 +76,14 @@ impl From<usize> for Interrupt {
 #[repr(C)]
 #[allow(non_snake_case)]
 struct Registers {
-    // FIXME: Fill me in.
+    // Fill me in.
+    pending_basic: u32,
+    pending: [ReadVolatile<u32>; 2],
+    fiq_control: u32,
+    enable: [Volatile<u32>; 2],
+    enable_basic: u32,
+    disable: [Volatile<u32>; 2],
+    disable_basic: u32,
 }
 
 /// An interrupt controller. Used to enable and disable interrupts as well as to
@@ -95,16 +102,31 @@ impl Controller {
 
     /// Enables the interrupt `int`.
     pub fn enable(&mut self, int: Interrupt) {
-        unimplemented!()
+        let index = int as u64;
+        if index < 32 {
+            self.registers.enable[0].or_mask(1 << index);
+        } else {
+            self.registers.enable[1].or_mask(1 << (index - 32));
+        }
     }
 
     /// Disables the interrupt `int`.
     pub fn disable(&mut self, int: Interrupt) {
-        unimplemented!()
+        let index = int as u64;
+        if index < 32 {
+            self.registers.disable[0].or_mask(1 << index);
+        } else {
+            self.registers.disable[1].or_mask(1 << (index - 32));
+        }
     }
 
     /// Returns `true` if `int` is pending. Otherwise, returns `false`.
     pub fn is_pending(&self, int: Interrupt) -> bool {
-        unimplemented!()
+        let index = int as u64;
+        if index < 32 {
+            self.registers.pending[0].has_mask(1 << index)
+        } else {
+            self.registers.pending[1].has_mask(1 << (index - 32))
+        }
     }
 }

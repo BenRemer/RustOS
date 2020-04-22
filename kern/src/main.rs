@@ -54,9 +54,13 @@ fn kmain() -> ! {
     unsafe {
         ALLOCATOR.initialize();
         FILESYSTEM.initialize();
+        IRQ.initialize();
+        VMM.initialize();
+        SCHEDULER.initialize();
+        SCHEDULER.start();
     }
     
-    spin_sleep(Duration::new(1,0));
+    // spin_sleep(Duration::new(1,0));
     // unsafe{current_el()}
     // kprintln!("Welcome");
     // panic!("error");
@@ -67,7 +71,7 @@ fn kmain() -> ! {
     //     v.push(i);
     //     kprintln!("{:?}", v);
     // }
-    shell::shell("$");
+    // shell::shell("$");
 }
 
 fn write() -> ! {

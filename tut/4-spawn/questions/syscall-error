@@ -1,0 +1,2 @@
+An advantage is that it uses less registers for simple syscalls. A disadvantage is that APIs might not necessarily use this negative-error
+formatting and will need extra mapping.

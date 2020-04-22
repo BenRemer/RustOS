@@ -1,0 +1,2 @@
+TCR_EL! is modified in setup method to configure the MMU. This sets T1SZ to 34 for the 34 bits we use in TTBR select. We need 1 bit
+for Level 2 index as there are only 2 level 3 page tables. 

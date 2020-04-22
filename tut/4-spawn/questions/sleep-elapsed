@@ -1,0 +1,2 @@
+It will normally differ as they require timer interrupts to work. They will be identical if they are on the same TICK interval. Depending
+on how fast you tick depends on how likely. 

@@ -33,38 +33,58 @@ context_save:
     stp q2, q3, [SP, #-32]!
     stp q0, q1, [SP, #-32]!
  
-    mrs x4, TPIDR_EL0
-    mrs x3, SP_EL0
-    mrs x2, SPSR_EL1
-    mrs x1, ELR_EL1
-    stp x3, x4, [SP, #-16]!
-    stp x1, x2, [SP, #-16]!
- 
+    //mrs x4, TPIDR_EL0
+    //mrs x3, SP_EL0
+    //mrs x2, SPSR_EL1
+    //mrs x1, ELR_EL1
+    //stp x3, x4, [SP, #-16]!
+    //stp x1, x2, [SP, #-16]!
+    mrs     x0, ELR_EL1
+    mrs     x1, SPSR_EL1
+    mrs     x2, SP_EL0
+    mrs     x3, TPIDR_EL0
+    mrs     x4, TTBR0_EL1
+    mrs     x5, TTBR1_EL1
+    stp     x1, x0, [SP, #-16]!
+    stp     x3, x2, [SP, #-16]!
+    stp     x4, x5, [SP, #-16]!
+
+    mov x28, lr
+
     mov x0, x29    
     mrs x1, ESR_EL1
     mov x2, SP      
  
-    str lr, [SP, #-16]!  
+    //str lr, [SP, #-16]!  
  
     bl handle_exception
  
-    ldr lr, [SP], #16
+    mov lr, x28
 
 .global context_restore
 context_restore:
     // Restore the context from the stack.
-    ldp x1, x2, [SP], #16
-    ldp x3, x4, [SP], #16
-    msr TPIDR_EL0, x4
-    msr SP_EL0, x3
-    msr SPSR_EL1, x2
-    msr ELR_EL1, x1
+    ldp     x4, x5, [SP], #16
+    ldp     x3, x2, [SP], #16
+    ldp     x1, x0, [SP], #16
+
+    msr TTBR1_EL1,x5
+    msr TTBR0_EL1,x4
+    msr TPIDR_EL0,x3
+    msr SP_EL0, x2
+    msr SPSR_EL1, x1
+    msr ELR_EL1, x0
  
-    ldp q0, q1, [SP], #32
-    ldp q2, q3, [SP], #32
-    ldp q4, q5, [SP], #32
-    ldp q6, q7, [SP], #32
-    ldp q8, q9, [SP], #32
+    dsb     ishst
+    tlbi    vmalle1
+    dsb     ish
+    isb
+
+    ldp q0, q1,  [SP], #32
+    ldp q2, q3,  [SP], #32
+    ldp q4, q5,  [SP], #32
+    ldp q6, q7,  [SP], #32
+    ldp q8, q9,  [SP], #32
     ldp q10, q11, [SP], #32
     ldp q12, q13, [SP], #32
     ldp q14, q15, [SP], #32
@@ -76,7 +96,7 @@ context_restore:
     ldp q26, q27, [SP], #32
     ldp q28, q29, [SP], #32
     ldp q30, q31, [SP], #32
- 
+
     ldp x0, x1, [SP], #16
     ldp x2, x3, [SP], #16
     ldp x4, x5, [SP], #16
@@ -91,6 +111,7 @@ context_restore:
     ldp x22, x23, [SP], #16
     ldp x24, x25, [SP], #16
     ldp x26, x27, [SP], #16
+
     ret
 
 .macro HANDLER source, kind

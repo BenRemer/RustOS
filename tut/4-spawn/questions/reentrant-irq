@@ -1,0 +1,2 @@
+This can be useful for when there interrupts that are transient and might lose information if ignored. It can result in a loop where 
+if it is not acknowledge it will repeat and trigger again. 

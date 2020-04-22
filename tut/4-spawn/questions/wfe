@@ -1,0 +1,1 @@
+If there is no instruction we want the CPU to wait for the next process. This keeps it from ever being blocked by nothing.

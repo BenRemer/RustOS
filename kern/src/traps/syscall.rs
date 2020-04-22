@@ -15,7 +15,16 @@ use kernel_api::*;
 /// parameter: the approximate true elapsed time from when `sleep` was called to
 /// when `sleep` returned.
 pub fn sys_sleep(ms: u32, tf: &mut TrapFrame) {
-    unimplemented!("sys_sleep()");
+    use pi::timer;
+
+    let start = timer::current_time().as_millis() as u64;
+    SCHEDULER.switch(State::Waiting(Box::new(move |p| {
+        let curr = timer::current_time().as_millis() as u64;
+        let elapsed = curr - start;
+        p.context.x[0] = elapsed;
+        p.context.x[7] = 1;
+        elapsed >= ms as u64
+    })), tf);
 }
 
 /// Returns current time.
@@ -27,14 +36,17 @@ pub fn sys_sleep(ms: u32, tf: &mut TrapFrame) {
 ///  - current time as seconds
 ///  - fractional part of the current time, in nanoseconds.
 pub fn sys_time(tf: &mut TrapFrame) {
-    unimplemented!("sys_time()");
+    let time = pi::timer::current_time();
+    tf.x[0] = time.as_secs();
+    tf.x[1] = time.subsec_nanos().into();
+    tf.x[7] = 1;
 }
 
 /// Kills current process.
 ///
 /// This system call does not take paramer and does not return any value.
 pub fn sys_exit(tf: &mut TrapFrame) {
-    unimplemented!("sys_exit()");
+    let _ = SCHEDULER.kill(tf);
 }
 
 /// Write to console.
@@ -43,7 +55,8 @@ pub fn sys_exit(tf: &mut TrapFrame) {
 ///
 /// It only returns the usual status value.
 pub fn sys_write(b: u8, tf: &mut TrapFrame) {
-    unimplemented!("sys_write()");
+    CONSOLE.lock().write_byte(b);
+    tf.x[7] = 1;
 }
 
 /// Returns current process's ID.
@@ -53,10 +66,18 @@ pub fn sys_write(b: u8, tf: &mut TrapFrame) {
 /// In addition to the usual status value, this system call returns a
 /// parameter: the current process's ID.
 pub fn sys_getpid(tf: &mut TrapFrame) {
-    unimplemented!("sys_getpid()");
+    tf.x[0] = tf.tpidr;
+    tf.x[7] = 1;
 }
 
 pub fn handle_syscall(num: u16, tf: &mut TrapFrame) {
     use crate::console::kprintln;
-    unimplemented!("handle_syscall()")
+    match num as usize {
+        NR_SLEEP => sys_sleep(tf.x[0] as u32, tf),
+        NR_TIME => sys_time(tf),
+        NR_EXIT => sys_exit(tf),
+        NR_WRITE => sys_write(tf.x[0] as u8, tf),
+        NR_GETPID => sys_getpid(tf),
+        _ => tf.x[7] = OsError::Unknown as u64
+    }
 }

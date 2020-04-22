@@ -188,6 +188,23 @@ fn cat(args: &[&str], working_dir: &PathBuf) {
     }
 }
 
+fn sleep(ms: &str) {
+    use core::str::FromStr;
+    use core::time::Duration;
+    use kernel_api::syscall::sleep;
+    let ms = match u32::from_str(ms) {
+        Ok(t) => t,
+        Err(_) => {
+            kprintln!("Error changing to ms");
+            return
+        }
+    };
+    match sleep(Duration::from_millis(ms.into())) {
+        Ok(t) => kprintln!("Slept {:?}", t),
+        Err(e) => kprintln!("Error while sleeping {:?}", e),
+    }
+}
+
 /// Starts a shell using `prefix` as the prefix for each line. This function
 /// returns if the `exit` command is called.
 const BACKSPACE: u8 = 8;
@@ -244,6 +261,7 @@ pub fn shell(prefix: &str) -> ! {
                     "cd" => cd(&command.args[1..], &mut working_directory),
                     "ls" => ls(&command.args[1..], &working_directory),
                     "cat" => cat(&command.args[1..], &working_directory),
+                    "sleep" => sleep(&command.args[1]),
                     _ =>  kprint!("\nunknown command: {}", command.path()),
                 }
                 break

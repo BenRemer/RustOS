@@ -18,6 +18,7 @@
         "rootdir",
         "seeked",
         "structopt",
+        "syscalls",
         "vfat"
     ]
 }

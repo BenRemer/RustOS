@@ -1,0 +1,2 @@
+I would probably just use the ready queue for normal programs and if there is a time we need to wait I can check the waiting queue
+to know if it is ready. I would say it should be better as we can add a new process whenever it's free.
